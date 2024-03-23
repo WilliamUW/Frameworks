@@ -62,8 +62,31 @@ export default async function Home({
 }) {
   const previousFrame = getPreviousFrame<State>(searchParams);
   const lastInput = previousFrame.postBody?.untrustedData.inputText;
+  const lastButtonIndex = previousFrame.postBody?.untrustedData.buttonIndex;
+
   console.log(previousFrame);
   console.log(previousFrame.postBody?.untrustedData.inputText);
+
+  let IpfsHash = "";
+
+  if (lastButtonIndex == 2) {
+    const outputJSON = JSON.stringify(conversationLog)
+    console.log("save as JSON: ", outputJSON);
+
+    const options = {
+      method: 'POST',
+      headers: {Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_API_KEY}`, 'Content-Type': 'application/json'},
+      body: outputJSON
+    };
+    
+    fetch('https://api.pinata.cloud/pinning/pinJSONToIPFS', options)
+      .then(response => response.json())
+      .then(response => {
+        console.log(response);
+        IpfsHash = response.IpfsHash;
+      })
+      .catch(err => console.error(err));
+  }
 
 
 
@@ -118,21 +141,29 @@ export default async function Home({
         previousFrame={previousFrame}
       >
         <FrameImage aspectRatio="1.91:1">
-        <div tw="w-full h-full bg-slate-700 text-white flex flex-col items-center justify-center" style={{marginLeft: "50px", marginRight: "50px", fontFamily: "Impact, Charcoal, sans-serif"}}>
-          <div tw="flex flex-row border border-white rounded-lg p-2" style={{ whiteSpace: "pre-wrap", textAlign: "center", padding: "30px", fontFamily: "Impact, Charcoal, sans-serif" }}>
+        {lastButtonIndex != 2 ? <div tw="w-full h-full bg-slate-700 text-white flex flex-col items-center justify-center">
+          <div tw="flex flex-row border border-white rounded-lg p-2" style={{ margin: '50px', whiteSpace: "pre-wrap", textAlign: "center", padding: "30px", fontFamily: "Impact, Charcoal, sans-serif" }}>
             {result[result.length - 1]}
           </div>
-          <div tw="flex flex-row border border-white rounded-lg p-2" style={{ marginTop: '50px', textAlign: "center", padding: "30px", fontFamily: "Impact, Charcoal, sans-serif" }}>
+          <div tw="flex flex-row border border-white rounded-lg p-2" style={{ margin: '20px', textAlign: "center", padding: "30px", fontFamily: "Impact, Charcoal, sans-serif" }}>
             Last Input: {lastInput}
           </div>
-        </div>
+        </div> : <div tw="w-full h-full bg-slate-700 text-white flex flex-col items-center justify-center" style={{marginLeft: "50px", marginRight: "50px", fontFamily: "Impact, Charcoal, sans-serif"}}>
+          <div tw="flex flex-row border border-white rounded-lg p-2" style={{ textAlign: "center", padding: "30px", fontFamily: "Impact, Charcoal, sans-serif" }}>
+            Thank you for playing FrameQuest! Your adventure can be saved as an NFT below! 🎉
+          </div>
+          <div tw="flex flex-row border border-white rounded-lg p-2" style={{ textAlign: "center", padding: "30px", fontFamily: "Impact, Charcoal, sans-serif" }}>
+            {IpfsHash}
+            </div>
+        </div>}
 
         </FrameImage>
         <FrameInput text={"Type here"}></FrameInput>
         
         {/* {lastInput?.toLowerCase()?.includes("end") && <FrameButton>End</FrameButton>} */}
         {state.page == 1 ? <FrameButton>Start! 🏁</FrameButton> :  <FrameButton>Proceed 🎮</FrameButton>}
-        {lastInput?.includes("end") ? <FrameButton>Mint NFT! 💾</FrameButton> :  <FrameButton>End Game. 🎬</FrameButton>}
+        {lastButtonIndex == 2 ? <FrameButton action="link" target={`https://brown-real-puma-604.mypinata.cloud/ipfs/${IpfsHash}`}>View your story on Pinata! 💾</FrameButton>
+ :  <FrameButton>End Game. 🎬</FrameButton>}
 
       </FrameContainer>
     </div>
