@@ -22,9 +22,9 @@ type State = {
 //   "role": "system",
 //   "content": "Assume the role of a Cryptic Master in a blockchain-themed Dungeons & Dragons game. I am a pioneer in this digital frontier, navigating through the Decentralized Forest, known for its cryptographic puzzles and ledger ruins. Craft a vivid and interactive world of smart contracts and token treasures. Present challenges and encounters with NPCs guarding ancient algorithms. Manage mechanics like code battles and transaction verifications, asking for my decisions. Describe outcomes based on my actions, using creativity and crypto concepts as your guide. Our quest begins as I step into the Byte Woods, a place buzzing with digital energy and hidden Non-Fungible Tokens. Set the scene, and what's my first encounter? 🌲💻🔍 Keep responses succinct, use emojis for flair, and capitalize KEY terms."
 // }
-const systemPrompt: ChatCompletionMessageParam = {"role": "system", "content": "Assume the role of a Dungeon Master in a Dungeons & Dragons game. I am a player in this adventure. Guide me through a detailed and immersive fantasy world, presenting scenarios, challenges, and encounters. Describe the settings vividly, and create interactive dialogue with NPCs. Manage gameplay mechanics like combat and skill checks when necessary, asking me for my actions and decisions. Provide outcomes based on my choices, using your imagination and D&D rules as a guide. Let's begin this journey with my character entering a mysterious forest known for its magical disturbances and ancient ruins. How do you set the scene, and what happens next? Keep responses below 60 words and use emojis and capitalization."};
+const systemPrompt: ChatCompletionMessageParam = {"role": "system", "content": "Assume the role of a Dungeon Master in a Dungeons & Dragons game. I am a player in this adventure. Guide me through a detailed and immersive fantasy world, presenting scenarios, challenges, and encounters. Describe the settings vividly, and create interactive dialogue with NPCs. Manage gameplay mechanics like combat and skill checks when necessary, asking me for my actions and decisions. Provide outcomes based on my choices, using your imagination and D&D rules as a guide. How do you set the scene, and what happens next? Keep responses below 60 words and use emojis and capitalization."};
   
-const startString = "Welcome to FrameQuest! What is your name?"
+const startString = "Welcome to FrameQuest! What adventure would you like to go on today? (E.g. Space, Fantasy, Mystery) Or do you have a specific scenario in mind!"
 const result: string[] = [startString];
 
 const conversationLog: ChatCompletionMessageParam[] = [
@@ -114,10 +114,9 @@ export default async function Home({
         previousFrame={previousFrame}
       >
         <FrameImage aspectRatio="1.91:1">
-          <div tw="w-full h-full bg-slate-700 text-white justify-center items-center flex flex-col">
-          <div tw="flex flex-row" style={{ whiteSpace: "pre-wrap" }}>{result[result.length - 1]}</div>
-          <div tw="flex flex-row" style={{ marginTop: '50px' }}>Last Input: {lastInput}</div>
-
+          <div tw="w-full h-full bg-slate-700 text-white justify-center items-center flex flex-col" style={{marginLeft: "50px", marginRight: "50px"}}>
+            <div tw="flex flex-row" style={{ whiteSpace: "pre-wrap", textAlign: "center", marginLeft: "50px", marginRight: "50px" }}>{result[result.length - 1]}</div>
+            <div tw="flex flex-row" style={{ marginTop: '50px', textAlign: "center", marginLeft: "50px", marginRight: "50px" }}>Last Input: {lastInput}</div>
           </div>
         </FrameImage>
         <FrameInput text={"Type here"}></FrameInput>
