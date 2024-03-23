@@ -102,6 +102,10 @@ export default async function Home({
 
 
   // then, when done, return next frame
+
+  // TODO: Mint NFT when adventure is done
+  // TODO: Upload json of adventure to pinata
+  // privy embedded wallet, dynamic embedded wallet
   return (
     <div>
       <a href="https://framesjs.org">frames.js</a> homeframe{" "}
@@ -120,6 +124,8 @@ export default async function Home({
           </div>
         </FrameImage>
         <FrameInput text={"Type here"}></FrameInput>
+        
+        {/* {lastInput?.toLowerCase()?.includes("end") && <FrameButton>End</FrameButton>} */}
         <FrameButton>Proceed</FrameButton>
       </FrameContainer>
     </div>
