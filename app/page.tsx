@@ -24,7 +24,7 @@ type State = {
 // }
 const systemPrompt: ChatCompletionMessageParam = {"role": "system", "content": "Assume the role of a Dungeon Master in a Dungeons & Dragons game. I am a player in this adventure. Guide me through a detailed and immersive fantasy world, presenting scenarios, challenges, and encounters. Describe the settings vividly, and create interactive dialogue with NPCs. Manage gameplay mechanics like combat and skill checks when necessary, asking me for my actions and decisions. Provide outcomes based on my choices, using your imagination and D&D rules as a guide. How do you set the scene, and what happens next? Keep responses below 60 words and use emojis and capitalization."};
   
-const startString = "Welcome to FrameQuest! What adventure would you like to go on today? (E.g. Space, Fantasy, Mystery) Or do you have a specific scenario in mind!"
+const startString = "Welcome to FrameQuest! \n\n What adventure would you like to go on today? \n (E.g. Space, Fantasy, Mystery) \n\n Or do you have a specific scenario in mind!"
 const result: string[] = [startString];
 
 const conversationLog: ChatCompletionMessageParam[] = [
@@ -118,15 +118,22 @@ export default async function Home({
         previousFrame={previousFrame}
       >
         <FrameImage aspectRatio="1.91:1">
-          <div tw="w-full h-full bg-slate-700 text-white justify-center items-center flex flex-col" style={{marginLeft: "50px", marginRight: "50px"}}>
-            <div tw="flex flex-row" style={{ whiteSpace: "pre-wrap", textAlign: "center", marginLeft: "50px", marginRight: "50px" }}>{result[result.length - 1]}</div>
-            <div tw="flex flex-row" style={{ marginTop: '50px', textAlign: "center", marginLeft: "50px", marginRight: "50px" }}>Last Input: {lastInput}</div>
+        <div style={{fontFamily: "Impact, Charcoal, sans-serif"}} tw="w-full h-full bg-slate-700 text-white flex flex-col items-center justify-center" style={{marginLeft: "50px", marginRight: "50px"}}>
+          <div style={{fontFamily: "Impact, Charcoal, sans-serif"}} tw="flex flex-row border border-white rounded-lg p-2" style={{ whiteSpace: "pre-wrap", textAlign: "center", padding: "30px" }}>
+            {result[result.length - 1]}
           </div>
+          <div style={{fontFamily: "Impact, Charcoal, sans-serif"}} tw="flex flex-row border border-white rounded-lg p-2" style={{ marginTop: '50px', textAlign: "center", padding: "30px" }}>
+            Last Input: {lastInput}
+          </div>
+        </div>
+
         </FrameImage>
         <FrameInput text={"Type here"}></FrameInput>
         
         {/* {lastInput?.toLowerCase()?.includes("end") && <FrameButton>End</FrameButton>} */}
-        <FrameButton>Proceed</FrameButton>
+        {state.page == 1 ? <FrameButton>Start! 🏁</FrameButton> :  <FrameButton>Proceed 🎮</FrameButton>}
+        {lastInput?.includes("end") ? <FrameButton>Mint NFT! 💾</FrameButton> :  <FrameButton>End Game. 🎬</FrameButton>}
+
       </FrameContainer>
     </div>
   );
