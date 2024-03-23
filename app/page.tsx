@@ -9,6 +9,8 @@ import {
 } from "frames.js/next/server";
 
 import Link from "next/link";
+import OpenAI from "openai";
+import { openAsBlob } from "fs";
 
 type State = {
   page: number;
@@ -34,6 +36,10 @@ const reducer: FrameReducer<State> = (state, action) => {
 
 const lastPage = 6;
 
+const openai = new OpenAI({
+  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY
+});
+
 // This is a react server component only
 export default async function Home({
   searchParams,
@@ -47,6 +53,8 @@ export default async function Home({
 
 
 
+
+
   // const validMessage = await validateActionSignature(previousFrame.postBody);
 
   // console.log(validMessage);
@@ -57,8 +65,26 @@ export default async function Home({
     previousFrame
   );
 
+  let openaiResult = "";
+
   if (lastInput) {
     state.conversationLog.push(lastInput);
+
+    const completion = await openai.chat.completions.create({
+      messages: [{"role": "system", "content": "You are a helpful assistant."},
+          {"role": "user", "content": lastInput}],
+      model: "gpt-3.5-turbo",
+    });
+
+    openaiResult = completion?.choices?.[0]?.message?.content ?? "";
+  
+    console.log(completion.choices[0]);
+    console.log(completion.choices[0]?.message.content);
+    console.log(openaiResult);
+
+    state.conversationLog.push(openaiResult);
+
+
   }
 
   // then, when done, return next frame
