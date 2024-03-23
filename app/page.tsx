@@ -118,11 +118,11 @@ export default async function Home({
         previousFrame={previousFrame}
       >
         <FrameImage aspectRatio="1.91:1">
-        <div style={{fontFamily: "Impact, Charcoal, sans-serif"}} tw="w-full h-full bg-slate-700 text-white flex flex-col items-center justify-center" style={{marginLeft: "50px", marginRight: "50px"}}>
-          <div style={{fontFamily: "Impact, Charcoal, sans-serif"}} tw="flex flex-row border border-white rounded-lg p-2" style={{ whiteSpace: "pre-wrap", textAlign: "center", padding: "30px" }}>
+        <div tw="w-full h-full bg-slate-700 text-white flex flex-col items-center justify-center" style={{marginLeft: "50px", marginRight: "50px", fontFamily: "Impact, Charcoal, sans-serif"}}>
+          <div tw="flex flex-row border border-white rounded-lg p-2" style={{ whiteSpace: "pre-wrap", textAlign: "center", padding: "30px", fontFamily: "Impact, Charcoal, sans-serif" }}>
             {result[result.length - 1]}
           </div>
-          <div style={{fontFamily: "Impact, Charcoal, sans-serif"}} tw="flex flex-row border border-white rounded-lg p-2" style={{ marginTop: '50px', textAlign: "center", padding: "30px" }}>
+          <div tw="flex flex-row border border-white rounded-lg p-2" style={{ marginTop: '50px', textAlign: "center", padding: "30px", fontFamily: "Impact, Charcoal, sans-serif" }}>
             Last Input: {lastInput}
           </div>
         </div>
