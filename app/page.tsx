@@ -8,9 +8,11 @@ import {
   useFramesReducer,
 } from "frames.js/next/server";
 
+import { ChainEnum } from "@dynamic-labs/sdk-api";
 import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 import Link from "next/link";
 import OpenAI from "openai";
+import {createEmbeddedWallet} from "../lib/dynamic";
 import { openAsBlob } from "fs";
 
 type State = {
@@ -49,6 +51,8 @@ const reducer: FrameReducer<State> = (state, action) => {
 
 const lastPage = 6;
 
+let status = "initial"
+let IpfsHash = ["hash"];
 
 const openai = new OpenAI({
   apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY
@@ -63,13 +67,14 @@ export default async function Home({
   const previousFrame = getPreviousFrame<State>(searchParams);
   const lastInput = previousFrame.postBody?.untrustedData.inputText;
   const lastButtonIndex = previousFrame.postBody?.untrustedData.buttonIndex;
+  const fid = searchParams?.fid;
 
   console.log(previousFrame);
   console.log(previousFrame.postBody?.untrustedData.inputText);
 
-  let IpfsHash = "";
 
   if (lastButtonIndex == 2) {
+    status = "end";
     const outputJSON = JSON.stringify(conversationLog)
     console.log("save as JSON: ", outputJSON);
 
@@ -79,13 +84,27 @@ export default async function Home({
       body: outputJSON
     };
     
-    fetch('https://api.pinata.cloud/pinning/pinJSONToIPFS', options)
+    await fetch('https://api.pinata.cloud/pinning/pinJSONToIPFS', options)
       .then(response => response.json())
       .then(response => {
         console.log(response);
-        IpfsHash = response.IpfsHash;
+        IpfsHash.push(response.IpfsHash);
       })
       .catch(err => console.error(err));
+  }
+
+  if (
+    status === "end" &&
+    lastButtonIndex === 3
+  ) {
+    try {
+      const newWallets = await createEmbeddedWallet(lastInput || "", parseInt(fid || "1"), [
+        ChainEnum.Sol,
+        ChainEnum.Evm,
+      ]);
+    } catch (e) {
+      console.log(e)    
+    }
   }
 
 
@@ -104,7 +123,7 @@ export default async function Home({
 
   let openaiResult = "";
 
-  if (lastInput) {
+  if (lastInput && status != "end") {
     conversationLog.push({"role": "user", "content": lastInput});
 
     const completion = await openai.chat.completions.create({
@@ -153,8 +172,11 @@ export default async function Home({
             Thank you for playing FrameQuest! Your adventure can be saved as an NFT below! 🎉
           </div>
           <div tw="flex flex-row border border-white rounded-lg p-2" style={{ textAlign: "center", padding: "30px", fontFamily: "Impact, Charcoal, sans-serif" }}>
-            {IpfsHash}
-            </div>
+          https://brown-real-puma-604.mypinata.cloud/ipfs/{IpfsHash[IpfsHash.length - 1]}
+          </div>
+          <div tw="flex flex-row border border-white rounded-lg p-2" style={{ textAlign: "center", padding: "30px", fontFamily: "Impact, Charcoal, sans-serif" }}>
+          Please create an embedded wallet to receive your NFT!
+          </div>
         </div>}
 
         </FrameImage>
@@ -162,9 +184,12 @@ export default async function Home({
         
         {/* {lastInput?.toLowerCase()?.includes("end") && <FrameButton>End</FrameButton>} */}
         {state.page == 1 ? <FrameButton>Start! 🏁</FrameButton> :  <FrameButton>Proceed 🎮</FrameButton>}
-        {lastButtonIndex == 2 ? <FrameButton action="link" target={`https://brown-real-puma-604.mypinata.cloud/ipfs/${IpfsHash}`}>View your story on Pinata! 💾</FrameButton>
- :  <FrameButton>End Game. 🎬</FrameButton>}
-
+        {lastButtonIndex == 2 ? <FrameButton action="link" target={`https://brown-real-puma-604.mypinata.cloud/ipfs/${IpfsHash[IpfsHash.length - 1]}`}>View your story on Pinata! 💾</FrameButton>
+        :  <FrameButton>End Game. 🎬</FrameButton>}
+        {status == "end" ? <FrameButton>Create Dynamic Wallet!</FrameButton>
+        :  null}
+        {status == "end" ? <FrameButton>Create Privy Wallet!</FrameButton>
+        :  null}
       </FrameContainer>
     </div>
   );
