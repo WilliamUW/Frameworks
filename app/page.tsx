@@ -8,16 +8,30 @@ import {
   useFramesReducer,
 } from "frames.js/next/server";
 
+import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 import Link from "next/link";
 import OpenAI from "openai";
 import { openAsBlob } from "fs";
 
 type State = {
   page: number;
-  conversationLog: string[];
 };
 
-const initialState = { page: 1, conversationLog: [] };
+// const systemPrompt: ChatCompletionMessageParam = {"role": "system", "content": "Assume the role of the BitLife game, guiding me through various life stages with decisions to make at each point. Present me with choices for my character's actions, from birth through adulthood, including education, career, relationships, and other life events. Reflect on the consequences of my decisions, affecting my character's happiness, health, smarts, and looks. Provide options for activities like jobs, hobbies, and interactions with other characters, each with potential outcomes. Let's start my digital life journey, detailing my character's initial stats and the first major decision I need to make. What's my first life event, and what choices do I have? Keep responses below 60 words. In the first line of every response, outline the player's age, health %, happiness %, and assets ($). For example, Age: x, Health: x%, Happiness: x%, Assets: $x.xx"};
+// const systemPrompt: ChatCompletionMessageParam = {
+//   "role": "system",
+//   "content": "Assume the role of a Cryptic Master in a blockchain-themed Dungeons & Dragons game. I am a pioneer in this digital frontier, navigating through the Decentralized Forest, known for its cryptographic puzzles and ledger ruins. Craft a vivid and interactive world of smart contracts and token treasures. Present challenges and encounters with NPCs guarding ancient algorithms. Manage mechanics like code battles and transaction verifications, asking for my decisions. Describe outcomes based on my actions, using creativity and crypto concepts as your guide. Our quest begins as I step into the Byte Woods, a place buzzing with digital energy and hidden Non-Fungible Tokens. Set the scene, and what's my first encounter? 🌲💻🔍 Keep responses succinct, use emojis for flair, and capitalize KEY terms."
+// }
+const systemPrompt: ChatCompletionMessageParam = {"role": "system", "content": "Assume the role of a Dungeon Master in a Dungeons & Dragons game. I am a player in this adventure. Guide me through a detailed and immersive fantasy world, presenting scenarios, challenges, and encounters. Describe the settings vividly, and create interactive dialogue with NPCs. Manage gameplay mechanics like combat and skill checks when necessary, asking me for my actions and decisions. Provide outcomes based on my choices, using your imagination and D&D rules as a guide. Let's begin this journey with my character entering a mysterious forest known for its magical disturbances and ancient ruins. How do you set the scene, and what happens next? Keep responses below 60 words and use emojis and capitalization."};
+  
+const startString = "Welcome to FrameQuest! What is your name?"
+const result: string[] = [startString];
+
+const conversationLog: ChatCompletionMessageParam[] = [
+  {"role": "assistant", "content": startString}
+];
+const initialState = { page: 1 };
+
 
 const reducer: FrameReducer<State> = (state, action) => {
   const buttonIndex = action.postBody?.untrustedData.buttonIndex;
@@ -30,11 +44,11 @@ const reducer: FrameReducer<State> = (state, action) => {
         : buttonIndex === 2
         ? state.page + 1
         : 1,
-    conversationLog: state.conversationLog,
   };
 };
 
 const lastPage = 6;
+
 
 const openai = new OpenAI({
   apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY
@@ -68,12 +82,11 @@ export default async function Home({
   let openaiResult = "";
 
   if (lastInput) {
-    state.conversationLog.push(lastInput);
+    conversationLog.push({"role": "user", "content": lastInput});
 
     const completion = await openai.chat.completions.create({
-      messages: [{"role": "system", "content": "You are a helpful assistant."},
-          {"role": "user", "content": lastInput}],
-      model: "gpt-3.5-turbo",
+      messages: [systemPrompt, ...conversationLog],
+      model: "gpt-3.5-turbo-0125",
     });
 
     openaiResult = completion?.choices?.[0]?.message?.content ?? "";
@@ -82,10 +95,11 @@ export default async function Home({
     console.log(completion.choices[0]?.message.content);
     console.log(openaiResult);
 
-    state.conversationLog.push(openaiResult);
-
+    conversationLog.push({"role": "assistant", "content": openaiResult});
+    result.push(openaiResult);
 
   }
+
 
   // then, when done, return next frame
   return (
@@ -101,24 +115,13 @@ export default async function Home({
       >
         <FrameImage aspectRatio="1.91:1">
           <div tw="w-full h-full bg-slate-700 text-white justify-center items-center flex flex-col">
-          {state.conversationLog.map((log) =>  <div tw="flex flex-row">{log}</div>)}
+          <div tw="flex flex-row" style={{ whiteSpace: "pre-wrap" }}>{result[result.length - 1]}</div>
+          <div tw="flex flex-row" style={{ marginTop: '50px' }}>Last Input: {lastInput}</div>
+
           </div>
         </FrameImage>
         <FrameInput text={"Type here"}></FrameInput>
-        {state.page !== 1 ? (
-          <FrameButton>←</FrameButton>
-        ) : (
-          <FrameButton action="link" target="https://framesjs.org/">
-            Open docs
-          </FrameButton>
-        )}
-        {state.page < 6 ? (
-          <FrameButton>→</FrameButton>
-        ) : (
-          <FrameButton action="link" target="https://framesjs.org">
-            Open frames.js
-          </FrameButton>
-        )}
+        <FrameButton>Proceed</FrameButton>
       </FrameContainer>
     </div>
   );
