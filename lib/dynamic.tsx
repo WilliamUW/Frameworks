@@ -25,7 +25,7 @@ const createEmbeddedWallet = async (
   const options = {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${key}`,
+      Authorization: `Bearer ${process.env.NEXT_PUBLIC_DYNAMIC_API_KEY}`,
       "Content-Type": "application/json",
     },
 
