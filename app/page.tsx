@@ -14,6 +14,7 @@ import Link from "next/link";
 import OpenAI from "openai";
 import {createEmbeddedWallet} from "../lib/dynamic";
 import { openAsBlob } from "fs";
+import { randomInt } from "crypto";
 
 type State = {
   page: number;
@@ -53,7 +54,9 @@ const lastPage = 6;
 
 let status = "initial"
 let IpfsHash = ["hash"];
-
+let newWallets: string[] = [];
+let notFirst = false;
+let mintUrl = "";
 const openai = new OpenAI({
   apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY
 });
@@ -67,13 +70,13 @@ export default async function Home({
   const previousFrame = getPreviousFrame<State>(searchParams);
   const lastInput = previousFrame.postBody?.untrustedData.inputText;
   const lastButtonIndex = previousFrame.postBody?.untrustedData.buttonIndex;
-  const fid = searchParams?.fid;
+  const fid = previousFrame.postBody?.untrustedData.fid || 1;
 
   console.log(previousFrame);
   console.log(previousFrame.postBody?.untrustedData.inputText);
 
 
-  if (lastButtonIndex == 2) {
+  if (lastButtonIndex == 2 && status != "end") {
     status = "end";
     const outputJSON = JSON.stringify(conversationLog)
     console.log("save as JSON: ", outputJSON);
@@ -94,17 +97,60 @@ export default async function Home({
   }
 
   if (
-    status === "end" &&
-    lastButtonIndex === 3
+    status !== "initial" &&
+    lastButtonIndex === 1
   ) {
+    // mint nft
     try {
-      const newWallets = await createEmbeddedWallet(lastInput || "", parseInt(fid || "1"), [
-        ChainEnum.Sol,
-        ChainEnum.Evm,
-      ]);
+      const options = {
+        method: 'POST',
+        headers: {
+          accept: 'application/json',
+          'content-type': 'application/json',
+          Authorization: 'e16c450b-8cf4-4609-bb13-3be526d5fa98'
+        },
+        body: JSON.stringify({
+          chain: 'polygon',
+          name: 'FrameQuest NFT',
+          description: 'Your FrameQuest NFT with your amazing adventure log! Link: https://ipfs.io/ipfs/QmQXo8kXx1qcaq1AhwMN67pePF2LoGg7TFqVLBoXFL6kgz',
+          file_url: 'https://media.discordapp.net/attachments/1161450447807193091/1221137466673860761/DALLE_2024-03-22_23.31.01_-_Design_a_digital_drawing_for_a_die-cut_sticker_of_a_cute_pixelated_adventurer._The_character_should_be_in_a_classic_8-bit_style_reminiscent_of_early_.webp?ex=66117be3&is=65ff06e3&hm=c23c32c7b2a540f6b905c84d16d98ad9a873588b6be3b011af67e9745f7c54b4&=&format=webp&width=1038&height=1038',
+          mint_to_address: '0x0E5d299236647563649526cfa25c39d6848101f5'
+        })
+      };
+      
+      await fetch('https://api.nftport.xyz/v0/mints/easy/urls', options)
+        .then(response => response.json())
+        .then(response => {
+          console.log(response);
+          mintUrl = response.transaction_external_url;
+        })
+        .catch(err => console.error(err));
+      status = "nft";
     } catch (e) {
       console.log(e)    
     }
+  }
+
+  if (
+    status !== "initial" &&
+    lastButtonIndex === 3
+  ) {
+    try {
+      newWallets = await createEmbeddedWallet(lastInput || "", fid, [
+        ChainEnum.Evm,
+      ]);
+      console.log(newWallets);
+      status = "dynamic";
+    } catch (e) {
+      console.log(e)    
+    }
+  }
+
+  if (
+    status !== "initial" &&
+    lastButtonIndex === 4
+  ) {
+    // privy wallet
   }
 
 
@@ -140,6 +186,8 @@ export default async function Home({
     conversationLog.push({"role": "assistant", "content": openaiResult});
     result.push(openaiResult);
 
+    notFirst = true;
+
   }
 
 
@@ -160,14 +208,15 @@ export default async function Home({
         previousFrame={previousFrame}
       >
         <FrameImage aspectRatio="1.91:1">
-        {lastButtonIndex != 2 ? <div tw="w-full h-full bg-slate-700 text-white flex flex-col items-center justify-center">
+        {status == "initial" && <div tw="w-full h-full bg-slate-700 text-white flex flex-col items-center justify-center">
           <div tw="flex flex-row border border-white rounded-lg p-2" style={{ margin: '50px', whiteSpace: "pre-wrap", textAlign: "center", padding: "30px", fontFamily: "Impact, Charcoal, sans-serif" }}>
             {result[result.length - 1]}
           </div>
           <div tw="flex flex-row border border-white rounded-lg p-2" style={{ margin: '20px', textAlign: "center", padding: "30px", fontFamily: "Impact, Charcoal, sans-serif" }}>
             Last Input: {lastInput}
           </div>
-        </div> : <div tw="w-full h-full bg-slate-700 text-white flex flex-col items-center justify-center" style={{marginLeft: "50px", marginRight: "50px", fontFamily: "Impact, Charcoal, sans-serif"}}>
+        </div>} 
+        {status == "end" && <div tw="w-full h-full bg-slate-700 text-white flex flex-col items-center justify-center" style={{marginLeft: "50px", marginRight: "50px", fontFamily: "Impact, Charcoal, sans-serif"}}>
           <div tw="flex flex-row border border-white rounded-lg p-2" style={{ textAlign: "center", padding: "30px", fontFamily: "Impact, Charcoal, sans-serif" }}>
             Thank you for playing FrameQuest! Your adventure can be saved as an NFT below! 🎉
           </div>
@@ -178,17 +227,47 @@ export default async function Home({
           Please create an embedded wallet to receive your NFT!
           </div>
         </div>}
+        {status == "dynamic" && <div tw="w-full h-full bg-slate-700 text-white flex flex-col items-center justify-center" style={{marginLeft: "50px", marginRight: "50px", fontFamily: "Impact, Charcoal, sans-serif"}}>
+          <div tw="flex flex-row border border-white rounded-lg p-2" style={{ textAlign: "center", padding: "30px", fontFamily: "Impact, Charcoal, sans-serif" }}>
+            Thank you for playing FrameQuest! Your adventure can be saved as an NFT below! 🎉
+          </div>
+          <div tw="flex flex-row border border-white rounded-lg p-2" style={{ textAlign: "center", padding: "30px", fontFamily: "Impact, Charcoal, sans-serif" }}>
+            Dynamic Wallet Address: {newWallets[newWallets.length - 1]}
+          </div>
+          <div tw="flex flex-row border border-white rounded-lg p-2" style={{ textAlign: "center", padding: "30px", fontFamily: "Impact, Charcoal, sans-serif" }}>
+            Click "Mint NFT" to receive your NFT!
+          </div>
+        </div>}
+        {status == "privy" && <div tw="w-full h-full bg-slate-700 text-white flex flex-col items-center justify-center" style={{marginLeft: "50px", marginRight: "50px", fontFamily: "Impact, Charcoal, sans-serif"}}>
+          <div tw="flex flex-row border border-white rounded-lg p-2" style={{ textAlign: "center", padding: "30px", fontFamily: "Impact, Charcoal, sans-serif" }}>
+            Thank you for playing FrameQuest! Your adventure can be saved as an NFT below! 🎉
+          </div>
+          <div tw="flex flex-row border border-white rounded-lg p-2" style={{ textAlign: "center", padding: "30px", fontFamily: "Impact, Charcoal, sans-serif" }}>
+            Dynamic Wallet Address: {newWallets[0]}
+          </div>
+          <div tw="flex flex-row border border-white rounded-lg p-2" style={{ textAlign: "center", padding: "30px", fontFamily: "Impact, Charcoal, sans-serif" }}>
+            Click "Mint NFT" to receive your NFT!
+          </div>
+        </div>}
+        {status == "nft" && <div tw="w-full h-full bg-slate-700 text-white flex flex-col items-center justify-center" style={{marginLeft: "50px", marginRight: "50px", fontFamily: "Impact, Charcoal, sans-serif"}}>
+          <div tw="flex flex-row border border-white rounded-lg p-2" style={{ textAlign: "center", padding: "30px", fontFamily: "Impact, Charcoal, sans-serif" }}>
+            FrameQuest NFT is minted! 🎉
+          </div>
+          <div tw="flex flex-row border border-white rounded-lg p-2" style={{ textAlign: "center", padding: "30px", fontFamily: "Impact, Charcoal, sans-serif" }}>
+            Wallet Address: {newWallets[0]}
+          </div>
+        </div>}
 
         </FrameImage>
-        <FrameInput text={"Type here"}></FrameInput>
+        <FrameInput text={status != "end" ? "Type your response here!" : "Type your email here."}></FrameInput>
         
         {/* {lastInput?.toLowerCase()?.includes("end") && <FrameButton>End</FrameButton>} */}
-        {state.page == 1 ? <FrameButton>Start! 🏁</FrameButton> :  <FrameButton>Proceed 🎮</FrameButton>}
-        {lastButtonIndex == 2 ? <FrameButton action="link" target={`https://brown-real-puma-604.mypinata.cloud/ipfs/${IpfsHash[IpfsHash.length - 1]}`}>View your story on Pinata! 💾</FrameButton>
+        {notFirst ?  (status == "initial" ? <FrameButton>Proceed 🎮</FrameButton> : <FrameButton>Mint NFT! 💿</FrameButton>) :  <FrameButton>Start! 🏁</FrameButton>}
+        {status != "initial" ? <FrameButton action="link" target={`https://brown-real-puma-604.mypinata.cloud/ipfs/${IpfsHash[IpfsHash.length - 1]}`}>View your story on Pinata! 💾</FrameButton>
         :  <FrameButton>End Game. 🎬</FrameButton>}
-        {status == "end" ? <FrameButton>Create Dynamic Wallet!</FrameButton>
+        {status != "initial" ? <FrameButton>Create Dynamic Wallet! 🪪</FrameButton>
         :  null}
-        {status == "end" ? <FrameButton>Create Privy Wallet!</FrameButton>
+        {status != "initial" ? <FrameButton>Create Privy Wallet! 💳</FrameButton>
         :  null}
       </FrameContainer>
     </div>
