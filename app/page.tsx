@@ -274,9 +274,9 @@ export default async function Home({
         {notFirst ?  (status == "initial" ? <FrameButton>Proceed 🎮</FrameButton> : <FrameButton>Mint NFT! 💿</FrameButton>) :  <FrameButton>Start! 🏁</FrameButton>}
         {status != "initial" ? <FrameButton action="link" target={`https://brown-real-puma-604.mypinata.cloud/ipfs/${IpfsHash[IpfsHash.length - 1]}`}>View your story on Pinata! 💾</FrameButton>
         :  <FrameButton>End Game. 🎬</FrameButton>}
-        {status != "initial" ? <FrameButton>Create Dynamic Wallet! 🪪</FrameButton>
+        {status != "initial" ? <FrameButton>Get Dynamic Wallet! 🪪</FrameButton>
         :  null}
-        {status != "initial" ? <FrameButton>Create Privy Wallet! 💳</FrameButton>
+        {status != "initial" ? <FrameButton>Get Privy Wallet! 💳</FrameButton>
         :  null}
       </FrameContainer>
     </div>
