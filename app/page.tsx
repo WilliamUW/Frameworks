@@ -13,6 +13,7 @@ import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 import Link from "next/link";
 import OpenAI from "openai";
 import {createEmbeddedWallet} from "../lib/dynamic";
+import {createOrFindEmbeddedWalletForFid} from "../lib/embedded-wallet";
 import { openAsBlob } from "fs";
 import { randomInt } from "crypto";
 
@@ -151,6 +152,14 @@ export default async function Home({
     lastButtonIndex === 4
   ) {
     // privy wallet
+    const ownerAddress = "0x0E5d299236647563649526cfa25c39d6848101f5";
+
+    // Generate an embedded wallet associated with the fid
+    const embeddedWalletAddress = await createOrFindEmbeddedWalletForFid(fid, ownerAddress);
+
+    console.log(embeddedWalletAddress);
+    newWallets = [embeddedWalletAddress];
+    status = "privy"
   }
 
 
@@ -243,7 +252,7 @@ export default async function Home({
             Thank you for playing FrameQuest! Your adventure can be saved as an NFT below! 🎉
           </div>
           <div tw="flex flex-row border border-white rounded-lg p-2" style={{ textAlign: "center", padding: "30px", fontFamily: "Impact, Charcoal, sans-serif" }}>
-            Dynamic Wallet Address: {newWallets[0]}
+            Privy Wallet Address: {newWallets[0]}
           </div>
           <div tw="flex flex-row border border-white rounded-lg p-2" style={{ textAlign: "center", padding: "30px", fontFamily: "Impact, Charcoal, sans-serif" }}>
             Click "Mint NFT" to receive your NFT!
