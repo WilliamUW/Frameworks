@@ -7,19 +7,8 @@ import { handle } from "frog/vercel";
 
 configDotenv();
 
-const key = process.env.KEY || `MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA6UGUOIalAdLeGjQQiEcS
-SaJLWgD+b1yMU8Tq2I346fj62mGOAIB/5pdVTg2gWZIT5F3zspRaFc+/w8fZ/+K/
-HDt0VX7rofUDe6Cv23ebJR4yaVaLs3SbOUP60sQc4wQBEd0gGJpD3XX9O2nQd5zH
-0cw+jMWani+leajn76wVN9dC6uSFMV4BwYjuENrTX6hRn1MNWsTG8pu6f0tYBK6F
-NIRndJHfH9EKdREzAOI+Hv70fupkJu8rb5rFuVbSkKaeQmNl+flUiwLjJr/RRLZ2
-XwWHVZiRbTfwlQO6yLOn4UUw8TyntJSmp2yR5y955TfrK0+T7Uo0TxXGHV54uYQc
-r+ATOD0bf1tOblKZlT1SUQsrAMBKkxSwFPHvI4J38mBA9Vi15Ril5hkOw2hxhIBs
-A/Eq7ad9XRUIiAI8Y/E1q+eZZfTaLCi1bb0qpab3Zfn9sbSL6pg2TPX2yLq8u3w3
-Se5bLA0wqT4MNT21JHnBR350IVEry8e+ClFAuFZwdgYLR/M3ytHrEmXKSU8oz8OC
-9iYgpHdIbX3HHMKKNdMKPTUVND4wJUQqHMZk48K+TY5NmXZ+56S5Wmn+wxBi1Fsj
-yTx9FRiNPqO4bslQZRB2LBatg5DhPut4nF6ugjMJ82LkOY2o11VrlHf9dYKSRpzK
-xSYDgpw/XQUahmuakyvEBpMCAwEAAQ==`;
-const environmentId = process.env.ENVIRONMENT_ID || "8c70b21d-72a6-4cc5-88cf-e7e48f772dd9";
+const key = process.env.NEXT_PUBLIC_DYNAMIC_KEY;
+const environmentId = process.env.NEXT_PUBLIC_ENVIRONMENT_ID;
 let newWallets: string[];
 
 export const app = new Frog({
