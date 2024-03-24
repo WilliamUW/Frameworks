@@ -13,6 +13,7 @@
     "@dynamic-labs/sdk-api": "^0.0.396",
     "@farcaster/core": "^0.14.4",
     "@noble/ed25519": "^2.0.0",
+    "axios": "^1.6.8",
     "dotenv": "^16.4.5",
     "frames.js": "^0.5.3",
     "frog": "^0.7.6",

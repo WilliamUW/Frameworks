@@ -28,7 +28,7 @@ type State = {
 // }
 const systemPrompt: ChatCompletionMessageParam = {"role": "system", "content": "Assume the role of a Dungeon Master in a Dungeons & Dragons game. I am a player in this adventure. Guide me through a detailed and immersive fantasy world, presenting scenarios, challenges, and encounters. Describe the settings vividly, and create interactive dialogue with NPCs. Manage gameplay mechanics like combat and skill checks when necessary, asking me for my actions and decisions. Provide outcomes based on my choices, using your imagination and D&D rules as a guide. How do you set the scene, and what happens next? Keep responses below 60 words and use emojis and capitalization."};
   
-const startString = "Welcome to FrameQuest! \n\n What adventure would you like to go on today? \n (E.g. Space, Fantasy, Mystery) \n\n Or do you have a specific scenario in mind!"
+const startString = "Welcome to FrameQuest! \n\n What adventure would you like to go on today? \n (E.g. Space, Fantasy, Mystery, Survival) \n\n Or do you have a specific scenario in mind!"
 const result: string[] = [startString];
 
 const conversationLog: ChatCompletionMessageParam[] = [
