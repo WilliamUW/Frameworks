@@ -148,9 +148,9 @@ export default async function Home({
         body: JSON.stringify({
           chain: 'polygon',
           name: 'FrameQuest NFT',
-          description: 'Your FrameQuest NFT with your amazing adventure log! Link: https://ipfs.io/ipfs/QmQXo8kXx1qcaq1AhwMN67pePF2LoGg7TFqVLBoXFL6kgz',
+          description: `Your FrameQuest NFT with your amazing adventure log! Link: https://ipfs.io/ipfs/${IpfsHash}`,
           file_url: 'https://media.discordapp.net/attachments/1161450447807193091/1221137466673860761/DALLE_2024-03-22_23.31.01_-_Design_a_digital_drawing_for_a_die-cut_sticker_of_a_cute_pixelated_adventurer._The_character_should_be_in_a_classic_8-bit_style_reminiscent_of_early_.webp?ex=66117be3&is=65ff06e3&hm=c23c32c7b2a540f6b905c84d16d98ad9a873588b6be3b011af67e9745f7c54b4&=&format=webp&width=1038&height=1038',
-          mint_to_address: '0x0E5d299236647563649526cfa25c39d6848101f5'
+          mint_to_address: newWallets[0] || '0x0E5d299236647563649526cfa25c39d6848101f5'
         })
       };
       
