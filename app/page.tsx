@@ -26,12 +26,12 @@ type State = {
 //   "role": "system",
 //   "content": "Assume the role of a Cryptic Master in a blockchain-themed Dungeons & Dragons game. I am a pioneer in this digital frontier, navigating through the Decentralized Forest, known for its cryptographic puzzles and ledger ruins. Craft a vivid and interactive world of smart contracts and token treasures. Present challenges and encounters with NPCs guarding ancient algorithms. Manage mechanics like code battles and transaction verifications, asking for my decisions. Describe outcomes based on my actions, using creativity and crypto concepts as your guide. Our quest begins as I step into the Byte Woods, a place buzzing with digital energy and hidden Non-Fungible Tokens. Set the scene, and what's my first encounter? 🌲💻🔍 Keep responses succinct, use emojis for flair, and capitalize KEY terms."
 // }
-const systemPrompt: ChatCompletionMessageParam = {"role": "system", "content": "Assume the role of a Dungeon Master in a Dungeons & Dragons game. I am a player in this adventure. Guide me through a detailed and immersive fantasy world, presenting scenarios, challenges, and encounters. Describe the settings vividly, and create interactive dialogue with NPCs. Manage gameplay mechanics like combat and skill checks when necessary, asking me for my actions and decisions. Provide outcomes based on my choices, using your imagination and D&D rules as a guide. How do you set the scene, and what happens next? Keep responses below 60 words and use emojis and capitalization."};
+const systemPrompt: ChatCompletionMessageParam = {"role": "system", "content": "Assume the role of a Dungeon Master in a Dungeons & Dragons game. I am a player in this adventure. Guide me through a detailed and immersive fantasy world, presenting scenarios, challenges, and encounters. Describe the settings vividly, and create interactive dialogue with NPCs. Manage gameplay mechanics like combat and skill checks when necessary, asking me for my actions and decisions. Provide outcomes based on my choices, using your imagination and D&D rules as a guide. How do you set the scene, and what happens next? Keep responses below 50 words without newlines and use emojis and capitalizations for dramatic effect."};
   
 const startString = "Welcome to FrameQuest! \n\n What adventure would you like to go on today? \n (E.g. Space, Fantasy, Mystery, Survival) \n\n Or do you have a specific scenario in mind!"
 const result: string[] = [startString];
 
-const conversationLog: ChatCompletionMessageParam[] = [
+let conversationLog: ChatCompletionMessageParam[] = [
   {"role": "assistant", "content": startString}
 ];
 const initialState = { page: 1 };
@@ -75,9 +75,44 @@ export default async function Home({
 
   console.log(previousFrame);
   console.log(previousFrame.postBody?.untrustedData.inputText);
+  let openaiResult = "";
 
+  const [state, dispatch] = useFramesReducer<State>(
+    reducer,
+    initialState,
+    previousFrame
+  );
 
-  if (lastButtonIndex == 2 && status != "end") {
+  if (lastButtonIndex == 1 && lastInput && status == "initial") {
+    conversationLog.push({"role": "user", "content": lastInput});
+
+    const completion = await openai.chat.completions.create({
+      messages: [systemPrompt, ...conversationLog],
+      model: "gpt-3.5-turbo-0125",
+    });
+
+    openaiResult = completion?.choices?.[0]?.message?.content ?? "";
+  
+    console.log(completion.choices[0]);
+    console.log(completion.choices[0]?.message.content);
+    console.log(openaiResult);
+
+    conversationLog.push({"role": "assistant", "content": openaiResult});
+    result.push(openaiResult);
+
+    notFirst = true;
+  }
+  else if (lastButtonIndex == 2 && status != "initial") {
+    // reset game
+    status = "initial";
+    state.page = 1;
+    conversationLog = [
+      {"role": "assistant", "content": startString}
+    ];
+    openaiResult = "";
+    notFirst = false;
+  }
+  else if (lastButtonIndex == 2 && status != "end") {
     status = "end";
     const outputJSON = JSON.stringify(conversationLog)
     console.log("save as JSON: ", outputJSON);
@@ -97,7 +132,7 @@ export default async function Home({
       .catch(err => console.error(err));
   }
 
-  if (
+  else if (
     status !== "initial" &&
     lastButtonIndex === 1
   ) {
@@ -132,7 +167,7 @@ export default async function Home({
     }
   }
 
-  if (
+  else if (
     status !== "initial" &&
     lastButtonIndex === 3
   ) {
@@ -147,7 +182,7 @@ export default async function Home({
     }
   }
 
-  if (
+  else if (
     status !== "initial" &&
     lastButtonIndex === 4
   ) {
@@ -170,34 +205,10 @@ export default async function Home({
 
   // console.log(validMessage);
 
-  const [state, dispatch] = useFramesReducer<State>(
-    reducer,
-    initialState,
-    previousFrame
-  );
 
-  let openaiResult = "";
 
-  if (lastInput && status != "end") {
-    conversationLog.push({"role": "user", "content": lastInput});
 
-    const completion = await openai.chat.completions.create({
-      messages: [systemPrompt, ...conversationLog],
-      model: "gpt-3.5-turbo-0125",
-    });
 
-    openaiResult = completion?.choices?.[0]?.message?.content ?? "";
-  
-    console.log(completion.choices[0]);
-    console.log(completion.choices[0]?.message.content);
-    console.log(openaiResult);
-
-    conversationLog.push({"role": "assistant", "content": openaiResult});
-    result.push(openaiResult);
-
-    notFirst = true;
-
-  }
 
 
   // then, when done, return next frame
@@ -271,8 +282,8 @@ export default async function Home({
         <FrameInput text={status != "end" ? "Type your response here!" : "Type your email here."}></FrameInput>
         
         {/* {lastInput?.toLowerCase()?.includes("end") && <FrameButton>End</FrameButton>} */}
-        {notFirst ?  (status == "initial" ? <FrameButton>Proceed 🎮</FrameButton> : <FrameButton>Mint NFT! 💿</FrameButton>) :  <FrameButton>Start! 🏁</FrameButton>}
-        {status != "initial" ? <FrameButton action="link" target={`https://brown-real-puma-604.mypinata.cloud/ipfs/${IpfsHash[IpfsHash.length - 1]}`}>View your story on Pinata! 💾</FrameButton>
+        {(status == "initial" ? <FrameButton>Next 🎮</FrameButton> :  (newWallets.length >= 1 ? <FrameButton>Mint NFT! 💿</FrameButton> : <FrameButton action="link" target={`https://brown-real-puma-604.mypinata.cloud/ipfs/${IpfsHash[IpfsHash.length - 1]}`}>View your story on Pinata! 💾</FrameButton>))}
+        {status != "initial" ? <FrameButton>Reset Game. ↪️</FrameButton>
         :  <FrameButton>End Game. 🎬</FrameButton>}
         {status != "initial" ? <FrameButton>Get Dynamic Wallet! 🪪</FrameButton>
         :  null}
